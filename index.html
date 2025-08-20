@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Client Gallery – Photographer</title>
+  <meta name="description" content="Tạo link chia sẻ album cho khách có mật khẩu và xuất danh sách hình ưa thích – chạy trên GitHub Pages" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#0b1020;--bg2:#0e1326;--card:#12192e;--muted:#aab3c5;--brand:#7c9aff;--brand2:#5df2d6;--ok:#7ef78f;--warn:#ffce6b;--err:#ff7f7f;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,Noto Sans,"Apple Color Emoji","Segoe UI Emoji";background:radial-gradient(1200px 600px at 10% -10%,#1a2150 0%,#0b1020 45%,#070b18 100%);color:#eaf0ff}
+    a{color:var(--brand)}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .nav{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .pill{padding:8px 14px;border:1px solid #2a355a;border-radius:999px;background:#0f1530a6;backdrop-filter:blur(6px);color:#dbe4ff}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid #2a355a;background:linear-gradient(180deg,#18224a,#111834);color:#eaf0ff;cursor:pointer;font-weight:600}
+    .btn:hover{filter:brightness(1.1)}
+    .btn.secondary{background:#111834}
+    .btn.success{border-color:#2f7042;background:linear-gradient(180deg,#174e2c,#143924)}
+    .btn.warn{border-color:#6a5b2a;background:linear-gradient(180deg,#564517,#3c310e)}
+    .btn.ghost{background:transparent;border-color:#344168}
+    .grid{display:grid;gap:18px}
+    .hero{padding:36px 0 8px}
+    h1{font-size:32px;margin:0 0 8px}
+    h2{font-size:22px;margin:20px 0 10px}
+    .card{background:linear-gradient(180deg,#121a36 0%,#0f162e 100%);border:1px solid #2a355a;border-radius:16px;padding:18px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    label{display:block;font-weight:600;margin:6px 0 6px}
+    input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #344168;background:#0c1430;color:#e7ecff}
+    input::placeholder,textarea::placeholder{color:#90a0c0}
+    .hint{font-size:12px;color:var(--muted)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .center{display:flex;align-items:center;justify-content:center}
+    .gallery{--col:3;display:grid;grid-template-columns:repeat(var(--col),1fr);gap:12px}
+    @media (max-width:900px){.row{grid-template-columns:1fr}.gallery{--col:2}}
+    @media (max-width:560px){.gallery{--col:1}}
+    .imgCard{position:relative;border:1px solid #2a355a;border-radius:12px;overflow:hidden;background:#0b1020}
+    .imgCard img{display:block;width:100%;height:260px;object-fit:cover;background:#0b1020}
+    .imgTop{position:absolute;inset:8px 8px auto auto;display:flex;gap:8px}
+    .tag{padding:6px 8px;border-radius:999px;background:#0d1535b0;border:1px solid #2a355a;font-size:12px}
+    .fav{position:absolute;left:8px;bottom:8px;display:flex;gap:8px;align-items:center}
+    .fav input{width:20px;height:20px}
+    .counter{font-weight:700}
+    .toast{position:fixed;right:18px;bottom:18px;background:#121a36;border:1px solid #2a355a;border-radius:12px;padding:12px 14px;display:none}
+    .hidden{display:none !important}
+    .sep{height:1px;background:linear-gradient(90deg,transparent,#2a355a,transparent);margin:16px 0}
+    .small{font-size:12px}
+    .kbd{border:1px solid #394777;border-radius:8px;padding:2px 6px;background:#0d1535}
+    .danger{color:var(--err)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <div class="pill mono">Client Gallery · GIAUKIEN</div>
+      <div style="display:flex; gap:8px">
+        <button class="btn ghost" id="goHome">Trang chủ</button>
+        <button class="btn" id="goAdmin">Tạo link cho khách</button>
+      </div>
+    </div>
+
+    <div class="hero" id="homeView">
+      <h1>Chia sẻ album cho khách có mật khẩu</h1>
+      <p class="hint">Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
+      <div class="sep"></div>
+      <div class="row">
+        <div class="card">
+          <h2>Tạo link cho khách</h2>
+          <p>Vào phần <strong>Tạo link</strong> để nhập <em>API Key</em>, <em>Folder ID</em> của Google Drive, đặt <em>mật khẩu</em> và <em>giới hạn số ảnh được chọn</em>. Hệ thống sẽ tạo URL riêng gửi cho khách.</p>
+          <button class="btn" id="ctaAdmin">Mở trình tạo link</button>
+          <p class="hint">Lưu ý: vì chạy tĩnh trên Pages, mật khẩu chỉ kiểm tra ở trình duyệt (không chống được người rành kỹ thuật). Nếu bạn cần bảo vệ thật sự, nên dùng server/ serverless.</p>
+        </div>
+        <div class="card">
+          <h2>Khách truy cập</h2>
+          <p>Nếu bạn là khách, bạn sẽ nhận 1 đường link dạng <span class="mono">#token=...</span>. Mở link, nhập mật khẩu là thấy ảnh.</p>
+          <div class="small">Ví dụ: <span class="mono">https://tenban.github.io/gallery.html#token=...</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminView" class="hidden">
+      <h1>Trình tạo link cho khách</h1>
+      <div class="card">
+        <div class="row">
+          <div>
+            <label>Tên album</label>
+            <input id="albumName" placeholder="VD: Wedding Linh & Nam"/>
+          </div>
+          <div>
+            <label>Giới hạn ảnh khách được chọn</label>
+            <input id="maxPicks" type="number" min="1" value="20" />
+          </div>
+          <div>
+            <label>Google Drive API Key <span class="hint">(yêu cầu bật Drive API & cho folder ở chế độ Anyone with link)</span></label>
+            <input id="apiKey" placeholder="AIza..."/>
+          </div>
+          <div>
+            <label>Google Drive Folder ID</label>
+            <input id="folderId" class="mono" placeholder="Ví dụ: 1AbCDeFGhijKLMNOPq..."/>
+          </div>
+          <div>
+            <label>Mật khẩu truy cập (khách sẽ nhập)</label>
+            <input id="password" type="password" placeholder="Đặt mật khẩu"/>
+          </div>
+          <div>
+            <label>Ngày hết hạn (không bắt buộc)</label>
+            <input id="expiry" type="date"/>
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px">
+          <button class="btn" id="btnGen">Tạo link</button>
+          <button class="btn secondary" id="btnPreview">Xem thử gallery (không cần mật khẩu)</button>
+        </div>
+        <div id="genResult" class="hint" style="margin-top:12px"></div>
+        <div class="sep"></div>
+        <details>
+          <summary><strong>Hướng dẫn lấy API Key & Folder ID</strong></summary>
+          <ol class="small">
+            <li>Mở <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → tạo Project → bật <em>Google Drive API</em> → tạo <em>API Key</em>.</li>
+            <li>Trên Google Drive, để folder chứa ảnh ở chế độ <em>Anyone with the link – Viewer</em>.</li>
+            <li>Lấy <em>Folder ID</em> từ URL thư mục: dạng <span class="mono">/folders/&lt;ID&gt;</span>.</li>
+          </ol>
+        </details>
+        <p class="small danger">Cảnh báo bảo mật: Trang này là static (không có server). Password chỉ được kiểm tra trong trình duyệt; người am hiểu có thể đọc token. Dùng như một lớp “khóa nhẹ”.</p>
+      </div>
+    </div>
+
+    <div id="clientView" class="hidden">
+      <div class="card" id="gate">
+        <h2 id="albumTitle">Album</h2>
+        <p class="hint" id="albumMeta">Nhập mật khẩu để mở album.</p>
+        <div class="row">
+          <div>
+            <label>Mật khẩu</label>
+            <input id="pwInput" type="password" placeholder="Nhập mật khẩu bạn đã nhận" />
+          </div>
+          <div style="display:flex;align-items:end">
+            <button class="btn" id="btnOpen">Mở album</button>
+          </div>
+        </div>
+        <p id="pwMsg" class="small"></p>
+      </div>
+
+      <div id="albumArea" class="hidden">
+        <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
+          <div>
+            <h2 id="liveTitle" style="margin:0 0 4px"></h2>
+            <div class="hint" id="liveMeta"></div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center">
+            <div class="tag">Được chọn: <span class="counter" id="pickCount">0</span>/<span id="pickMax">0</span></div>
+            <button class="btn success" id="btnExport">Xuất danh sách (.txt)</button>
+            <button class="btn ghost" id="btnCopy">Copy danh sách</button>
+          </div>
+        </div>
+        <div id="galleryWrap" class="card">
+          <div class="gallery" id="gallery"></div>
+          <div id="empty" class="hint hidden">Chưa tìm thấy ảnh trong thư mục này.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+  // ---------- Small helpers ----------
+  const $ = (sel)=>document.querySelector(sel);
+  const show = (el, on)=> el.classList[on? 'remove':'add']('hidden');
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 2200); }
+  const baseUrl = location.origin + location.pathname; // for link preview
+
+  // ---------- Navigation between views ----------
+  const views = {home: $('#homeView'), admin: $('#adminView'), client: $('#clientView')};
+  function goto(view){ Object.values(views).forEach(v=>show(v,false)); show(views[view], true); }
+  $('#goHome').onclick = ()=>{ location.hash=''; renderByHash(); }
+  $('#goAdmin').onclick = ()=>{ location.hash='#admin'; renderByHash(); }
+  $('#ctaAdmin').onclick = ()=>{ location.hash='#admin'; renderByHash(); }
+
+  function renderByHash(){
+    const h = location.hash || '';
+    if(h.startsWith('#admin')){ goto('admin'); return; }
+    if(h.startsWith('#token=')) { goto('client'); initClient(decodeToken(h.slice(7))); return; }
+    goto('home');
+  }
+
+  // ---------- Token pack/unpack (not cryptographically secure) ----------
+  async function sha256(txt){
+    const enc = new TextEncoder().encode(txt);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  function b64uEncode(obj){
+    const j = JSON.stringify(obj);
+    return btoa(unescape(encodeURIComponent(j))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+  }
+  function b64uDecode(s){
+    s = s.replaceAll('-','+').replaceAll('_','/');
+    try{ return JSON.parse(decodeURIComponent(escape(atob(s)))); }catch(e){ return null }
+  }
+
+  // ---------- Admin: generate link ----------
+  $('#btnGen').onclick = async ()=>{
+    const album = $('#albumName').value.trim() || 'Album';
+    const apiKey = $('#apiKey').value.trim();
+    const folderId = $('#folderId').value.trim();
+    const password = $('#password').value;
+    const maxPicks = Math.max(1, parseInt($('#maxPicks').value||'1'));
+    const expiry = $('#expiry').value || null;
+    if(!apiKey || !folderId || !password){ toast('Vui lòng nhập API Key, Folder ID, mật khẩu'); return; }
+    const pwHash = await sha256(password);
+    const payload = { v:1, album, apiKey, folderId, pwHash, maxPicks, expiry };
+    const token = b64uEncode(payload);
+    const url = `${baseUrl}#token=${token}`;
+    $('#genResult').innerHTML = `<div class="mono" style="word-break:break-all">${url}</div><div class="small">Gửi link trên cho khách. ${expiry?`(Hết hạn: ${expiry})`:''}</div>`;
+    await navigator.clipboard.writeText(url).catch(()=>{});
+    toast('Đã tạo link & copy vào clipboard');
+  };
+
+  // Quick preview: skip password and just list gallery (for you to test)
+  $('#btnPreview').onclick = async ()=>{
+    const apiKey = $('#apiKey').value.trim();
+    const folderId = $('#folderId').value.trim();
+    const album = $('#albumName').value.trim()||'Album';
+    const maxPicks = Math.max(1, parseInt($('#maxPicks').value||'1'));
+    if(!apiKey || !folderId){ toast('Nhập API Key & Folder ID'); return; }
+    const payload = { v:1, album, apiKey, folderId, pwHash:"", maxPicks, expiry:null };
+    goto('client'); initClient(payload, {skipPw:true});
+  };
+
+  // ---------- Client flow ----------
+  function decodeToken(tokenStr){
+    const p = b64uDecode(tokenStr);
+    if(!p || !p.folderId || !p.apiKey) { toast('Token không hợp lệ.'); goto('home'); return null; }
+    return p;
+  }
+
+  function initClient(payload, opts={}){
+    if(!payload) return;
+    const {album, maxPicks, expiry} = payload;
+    $('#albumTitle').textContent = album || 'Album';
+    $('#albumMeta').textContent = expiry? `Link có thể hết hạn sau ngày ${expiry}.` : 'Nhập mật khẩu để mở album.';
+    $('#pickMax').textContent = maxPicks;
+    show($('#gate'), !opts.skipPw);
+    show($('#albumArea'), !!opts.skipPw);
+    if(opts.skipPw){ loadGallery(payload); }
+
+    $('#btnOpen').onclick = async ()=>{
+      const pw = $('#pwInput').value;
+      if(!pw){ $('#pwMsg').textContent = 'Vui lòng nhập mật khẩu'; return; }
+      const hash = await sha256(pw);
+      if(hash !== payload.pwHash){ $('#pwMsg').textContent = 'Sai mật khẩu'; return; }
+      // ok
+      $('#pwMsg').textContent='';
+      show($('#gate'), false); show($('#albumArea'), true);
+      loadGallery(payload);
+    };
+  }
+
+  async function loadGallery(p){
+    $('#liveTitle').textContent = p.album || 'Album';
+    $('#liveMeta').textContent = `Thư mục: ${p.folderId}`;
+    const list = await listDriveFiles(p.folderId, p.apiKey);
+    renderGallery(list, p.maxPicks);
+  }
+
+  // ---------- Google Drive listing (public folder with API key) ----------
+  async function listDriveFiles(folderId, apiKey){
+    // List only images in the folder (no recursion). Requires folder "anyone with link" visible.
+    const q = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
+    const fields = encodeURIComponent('files(id,name,mimeType,thumbnailLink,webContentLink,webViewLink)');
+    const url = `https://www.googleapis.com/drive/v3/files?q=${q}&key=${apiKey}&fields=${fields}&pageSize=1000&orderBy=name`;
+    try{
+      const res = await fetch(url);
+      if(!res.ok){ throw new Error(await res.text()); }
+      const {files} = await res.json();
+      return files || [];
+    }catch(e){
+      console.error(e); toast('Không thể tải danh sách ảnh. Kiểm tra API Key/ quyền chia sẻ folder.');
+      return [];
+    }
+  }
+
+  function fileThumb(id){
+    // Fallback chain for thumbnail
+    // 1) Google thumbnailLink is often blocked by CORS. We'll attempt uc?export=view which usually works for public files.
+    return `https://drive.google.com/uc?export=view&id=${id}`;
+  }
+
+  function fileDownload(id){
+    return `https://drive.google.com/uc?export=download&id=${id}`;
+  }
+
+  // ---------- Render & selection ----------
+  function renderGallery(files, maxPicks){
+    const wrap = $('#gallery');
+    wrap.innerHTML = '';
+    if(!files.length){ show($('#empty'), true); return; }
+    show($('#empty'), false);
+    let selected = new Set();
+    const counter = ()=> { $('#pickCount').textContent = String(selected.size); };
+
+    files.forEach((f, idx)=>{
+      const card = document.createElement('div');
+      card.className = 'imgCard';
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.alt = f.name;
+      img.src = fileThumb(f.id);
+
+      const top = document.createElement('div'); top.className='imgTop';
+      const nameTag = document.createElement('div'); nameTag.className='tag mono'; nameTag.textContent = f.name; top.appendChild(nameTag);
+
+      const fav = document.createElement('div'); fav.className='fav';
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.id = 'cb_'+f.id;
+      const lb = document.createElement('label'); lb.className='tag'; lb.htmlFor = cb.id; lb.textContent = 'Chọn';
+
+      cb.addEventListener('change', ()=>{
+        if(cb.checked){
+          if(selected.size >= maxPicks){ cb.checked=false; toast(`Tối đa ${maxPicks} ảnh`); return; }
+          selected.add(f.id);
+        }else{
+          selected.delete(f.id);
+        }
+        counter();
+      });
+
+      fav.appendChild(cb); fav.appendChild(lb);
+      card.appendChild(img); card.appendChild(top); card.appendChild(fav);
+      // Clicking image toggles selection
+      img.addEventListener('click', ()=>{ cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); });
+
+      // Right-click to download
+      card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id), '_blank'); });
+      wrap.appendChild(card);
+    });
+
+    counter();
+
+    $('#btnExport').onclick = ()=>{
+      if(!selected.size){ toast('Chưa chọn ảnh nào'); return; }
+      const lines = files.filter(f=>selected.has(f.id)).map((f,i)=>`${String(i+1).padStart(3,'0')}  ${f.name}  [${f.id}]`);
+      const txt = lines.join('\n');
+      const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'favorites.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Đã tải favorites.txt');
+    };
+
+    $('#btnCopy').onclick = async ()=>{
+      const lines = files.filter(f=>selected.has(f.id)).map((f,i)=>`${String(i+1).padStart(3,'0')}  ${f.name}  [${f.id}]`);
+      const txt = lines.join('\n');
+      try{ await navigator.clipboard.writeText(txt); toast('Đã copy danh sách'); } catch{ toast('Copy thất bại'); }
+    };
+  }
+
+  // ---------- init ----------
+  window.addEventListener('hashchange', renderByHash);
+  renderByHash();
+  </script>
+</body>
+</html>
