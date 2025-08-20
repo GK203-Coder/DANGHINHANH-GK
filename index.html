@@ -54,6 +54,11 @@
     .small{font-size:12px}
     .kbd{border:1px solid #394777;border-radius:8px;padding:2px 6px;background:#0d1535}
     .danger{color:var(--err)}
+    /* ==== Fix tràn nút ở mobile (quấn dòng) + safe-area ==== */
+    #albumArea > .card{flex-wrap:wrap}
+    #albumArea > .card > div:last-child{display:flex;gap:10px;flex-wrap:wrap}
+    @supports(padding:max(0px)){ body{ padding-bottom: env(safe-area-inset-bottom) } }
+    @media (max-width:560px){ .btn{padding:10px 12px;border-radius:10px} .tag{max-width:70vw} }
   </style>
 </head>
 <body>
@@ -177,7 +182,6 @@
   function toast(msg){ const t=$('#toast'); if(!t) return; t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 2200); }
   const baseUrl = location.origin + location.pathname;
 
-  // safe event binding (works if element exists)
   function on(sel, evt, fn, opts){ const el = typeof sel==='string'? $(sel): sel; if(el) el.addEventListener(evt, fn, opts||{passive:true}); }
 
   // Accept URL or raw ID, return Folder ID
@@ -294,7 +298,9 @@
       return [];
     }
   }
-  const fileThumb = (id)=>`https://drive.google.com/uc?export=view&id=${id}`;
+
+  // Hiển thị được RAW/HEIC qua thumbnail endpoint; tải bản gốc qua uc?export=download
+  const fileThumb = (id)=>`https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
   const fileDownload = (id)=>`https://drive.google.com/uc?export=download&id=${id}`;
 
   // ---------- Render ----------
@@ -325,16 +331,14 @@
         counter();
       }
 
-      // Click & chạm để chọn
       img.addEventListener('click', toggle, {passive:true});
       img.addEventListener('touchstart', (e)=>{ e.preventDefault(); toggle(); }, {passive:false});
       lb.addEventListener('click', toggle, {passive:true});
 
-      // Giữ lâu để tải trên mobile
+      // Long-press để tải trên mobile
       let pressTimer; card.addEventListener('touchstart', ()=>{ pressTimer=setTimeout(()=>{ window.open(fileDownload(f.id),'_blank'); },650); }, {passive:true});
       card.addEventListener('touchend', ()=> clearTimeout(pressTimer), {passive:true});
 
-      // Right-click để tải trên desktop
       card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id),'_blank'); });
 
       fav.append(cb, lb);
