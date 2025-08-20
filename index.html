@@ -54,11 +54,16 @@
     .small{font-size:12px}
     .kbd{border:1px solid #394777;border-radius:8px;padding:2px 6px;background:#0d1535}
     .danger{color:var(--err)}
-    /* ==== Fix tràn nút ở mobile (quấn dòng) + safe-area ==== */
+    /* Quấn nút khi hẹp + safe-area */
     #albumArea > .card{flex-wrap:wrap}
     #albumArea > .card > div:last-child{display:flex;gap:10px;flex-wrap:wrap}
     @supports(padding:max(0px)){ body{ padding-bottom: env(safe-area-inset-bottom) } }
     @media (max-width:560px){ .btn{padding:10px 12px;border-radius:10px} .tag{max-width:70vw} }
+    /* Nút tải xuống ở góc ảnh + ô ghi chú */
+    .imgActions{position:absolute;right:8px;bottom:8px;display:flex;gap:8px}
+    .dlbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid #2a355a;background:#0d1535b0;backdrop-filter:blur(6px);cursor:pointer}
+    .dlbtn svg{width:18px;height:18px}
+    .note{display:block;width:100%;margin-top:8px;background:#0c1430;border:1px solid #344168;border-radius:10px;padding:10px 12px;color:#e7ecff}
   </style>
 </head>
 <body>
@@ -72,7 +77,7 @@
     </div>
 
     <div class="hero" id="homeView">
-      <h1>Chia sẻ album cho khách có mật khẩu</h1>
+      <h1>Chia sẻ album cho khách</h1>
       <p class="hint">Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
       <div class="sep"></div>
       <div class="row">
@@ -84,8 +89,8 @@
         </div>
         <div class="card">
           <h2>Khách truy cập</h2>
-          <p>Nếu bạn là khách, bạn sẽ nhận 1 đường link dạng <span class="mono">#token=...</span>. Mở link, nhập mật khẩu là thấy ảnh.</p>
-          <div class="small">Ví dụ: <span class="mono">https://tenban.github.io/gallery.html#token=...</span></div>
+          <p>Nếu bạn là khách, bạn sẽ nhận 1 đường link. Mở link, nhập mật khẩu là thấy ảnh.</p>
+          <!-- <div class="small">Ví dụ: <span class="mono">https://tenban.github.io/gallery.html#token=...</span></div> -->
         </div>
       </div>
     </div>
@@ -161,8 +166,8 @@
           </div>
           <div style="display:flex; gap:10px; align-items:center">
             <div class="tag">Được chọn: <span class="counter" id="pickCount">0</span>/<span id="pickMax">0</span></div>
-            <button class="btn success" id="btnExport">Xuất danh sách (.txt)</button>
-            <button class="btn ghost" id="btnCopy">Copy danh sách</button>
+            <button class="btn success" id="btnExport">Xuất DS (.txt)</button>
+            <button class="btn ghost" id="btnCopy">Copy DS</button>
           </div>
         </div>
         <div id="galleryWrap" class="card">
@@ -216,7 +221,7 @@
   }
   function b64uEncode(obj){
     const j = JSON.stringify(obj);
-    return btoa(unescape(encodeURIComponent(j))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    return btoa(unescape(encodeURIComponent(j))).replaceAll('+','-').replaceAll('/','_').replaceAll('=' ,'');
   }
   function b64uDecode(s){
     s = s.replaceAll('-','+').replaceAll('_','/');
@@ -299,7 +304,7 @@
     }
   }
 
-  // Hiển thị được RAW/HEIC qua thumbnail endpoint; tải bản gốc qua uc?export=download
+  // Thumbnail hiển thị tốt cả RAW/HEIC; tải bản gốc
   const fileThumb = (id)=>`https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
   const fileDownload = (id)=>`https://drive.google.com/uc?export=download&id=${id}`;
 
@@ -309,11 +314,14 @@
     wrap.innerHTML = '';
     if(!files.length){ show($('#empty'), true); return; }
     show($('#empty'), false);
-    let selected = new Set();
+
+    const selected = new Set();
+    const notes = new Map(); // id -> note
     const counter = ()=> { const el=$('#pickCount'); if(el) el.textContent = String(selected.size); };
 
-    files.forEach((f)=>{
-      const card = document.createElement('div'); card.className = 'imgCard';
+    files.forEach((f, idx)=>{
+      const card = document.createElement('div'); card.className = 'imgCard'; card.tabIndex=0;
+
       const img = document.createElement('img'); img.loading='lazy'; img.alt=f.name; img.src=fileThumb(f.id);
 
       const top = document.createElement('div'); top.className='imgTop';
@@ -323,26 +331,37 @@
       const cb = document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+f.id; cb.setAttribute('aria-label','Chọn ảnh');
       const lb = document.createElement('label'); lb.className='tag'; lb.htmlFor=cb.id; lb.textContent='Chọn'; lb.setAttribute('role','button');
 
+      const actions = document.createElement('div'); actions.className='imgActions';
+      const dl = document.createElement('a'); dl.className='dlbtn'; dl.href=fileDownload(f.id); dl.title='Tải ảnh'; dl.setAttribute('download','');
+      dl.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+      const note = document.createElement('input'); note.className='note'; note.type='text'; note.placeholder='Ghi chú… (ví dụ: chỉnh sáng, cắt 4x5, xóa vật thể…)';
+      note.addEventListener('input', ()=>{ notes.set(f.id, note.value.trim()); });
+
+      // Toggle chọn khi bấm bất kỳ nơi nào trên thẻ (trừ khi bấm vào ghi chú hoặc nút tải)
       function toggle(){
         if(!cb.checked){
           if(selected.size >= maxPicks){ toast(`Tối đa ${maxPicks} ảnh`); return; }
           cb.checked = true; selected.add(f.id);
-        }else{ cb.checked=false; selected.delete(f.id); }
+        }else{
+          cb.checked = false; selected.delete(f.id);
+        }
         counter();
       }
 
-      img.addEventListener('click', toggle, {passive:true});
-      img.addEventListener('touchstart', (e)=>{ e.preventDefault(); toggle(); }, {passive:false});
-      lb.addEventListener('click', toggle, {passive:true});
+      card.addEventListener('click', (e)=>{
+        if(e.target === note || e.target.closest('.dlbtn') || e.target === cb) return;
+        toggle();
+      }, {passive:true});
 
-      // Long-press để tải trên mobile
-      let pressTimer; card.addEventListener('touchstart', ()=>{ pressTimer=setTimeout(()=>{ window.open(fileDownload(f.id),'_blank'); },650); }, {passive:true});
-      card.addEventListener('touchend', ()=> clearTimeout(pressTimer), {passive:true});
+      lb.addEventListener('click', (e)=>{ e.preventDefault(); toggle(); }, {passive:false});
 
+      // Right-click desktop để tải
       card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id),'_blank'); });
 
       fav.append(cb, lb);
-      card.append(img, top, fav);
+      actions.appendChild(dl);
+      card.append(img, top, fav, actions, note);
       wrap.appendChild(card);
     });
 
@@ -350,7 +369,13 @@
 
     on('#btnExport','click', ()=>{
       if(!selected.size){ toast('Chưa chọn ảnh nào'); return; }
-      const lines = files.filter(f=>selected.has(f.id)).map((f,i)=>`${String(i+1).padStart(3,'0')}  ${f.name}  [${f.id}]`);
+      // Xuất: STT + tên file + (ghi chú nếu có)
+      const chosen = files.filter(f=>selected.has(f.id));
+      const lines = chosen.map((f,i)=>{
+        const idx = String(i+1).padStart(3,'0');
+        const n = notes.get(f.id);
+        return n ? `${idx}  ${f.name}  — ${n}` : `${idx}  ${f.name}`;
+      });
       const txt = lines.join('\n');
       const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='favorites.txt'; a.click();
@@ -359,7 +384,12 @@
     });
 
     on('#btnCopy','click', async ()=>{
-      const lines = files.filter(f=>selected.has(f.id)).map((f,i)=>`${String(i+1).padStart(3,'0')}  ${f.name}  [${f.id}]`);
+      const chosen = files.filter(f=>selected.has(f.id));
+      const lines = chosen.map((f,i)=>{
+        const idx = String(i+1).padStart(3,'0');
+        const n = notes.get(f.id);
+        return n ? `${idx}  ${f.name}  — ${n}` : `${idx}  ${f.name}`;
+      });
       const txt = lines.join('\n');
       try{ await navigator.clipboard.writeText(txt); toast('Đã copy danh sách'); } catch{ toast('Copy thất bại'); }
     });
