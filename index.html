@@ -58,7 +58,7 @@
 <body>
   <div class="container">
     <div class="nav">
-      <div class="pill mono">Client Gallery · GIAUKIEN</div>
+      <div class="pill mono">Client Gallery · GitHub Pages</div>
       <div style="display:flex; gap:8px">
         <button class="btn ghost" id="goHome">Trang chủ</button>
         <button class="btn" id="goAdmin">Tạo link cho khách</button>
@@ -67,7 +67,7 @@
 
     <div class="hero" id="homeView">
       <h1>Chia sẻ album cho khách có mật khẩu</h1>
-      <p class="hint">Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
+      <p class="hint">Single-file · chạy trên GitHub Pages · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
       <div class="sep"></div>
       <div class="row">
         <div class="card">
@@ -215,7 +215,7 @@
     const expiry = $('#expiry').value || null;
     if(!apiKey || !folderId || !password){ toast('Vui lòng nhập API Key, Folder ID, mật khẩu'); return; }
     const pwHash = await sha256(password);
-    const payload = { v:1, album, apiKey, folderId, pwHash, maxPicks, expiry };
+    const payload = { v:1, album, apiKey, folderId: normalizeFolderId(folderId), pwHash, maxPicks, expiry };
     const token = b64uEncode(payload);
     const url = `${baseUrl}#token=${token}`;
     $('#genResult').innerHTML = `<div class="mono" style="word-break:break-all">${url}</div><div class="small">Gửi link trên cho khách. ${expiry?`(Hết hạn: ${expiry})`:''}</div>`;
@@ -230,7 +230,7 @@
     const album = $('#albumName').value.trim()||'Album';
     const maxPicks = Math.max(1, parseInt($('#maxPicks').value||'1'));
     if(!apiKey || !folderId){ toast('Nhập API Key & Folder ID'); return; }
-    const payload = { v:1, album, apiKey, folderId, pwHash:"", maxPicks, expiry:null };
+    const payload = { v:1, album, apiKey, folderId: normalizeFolderId(folderId), pwHash:"", maxPicks, expiry:null };
     goto('client'); initClient(payload, {skipPw:true});
   };
 
@@ -270,10 +270,28 @@
     renderGallery(list, p.maxPicks);
   }
 
+  // ---------- Google Drive helpers ----------
+  function normalizeFolderId(s){
+    if(!s) return s;
+    // Accept full URLs: https://drive.google.com/drive/folders/<ID>?...
+    // or https://drive.google.com/open?id=<ID>
+    // or just the raw ID
+    try{
+      if(s.startsWith('http')){
+        const m1 = s.match(/\/folders\/([^\/?#]+)/);
+        if(m1) return m1[1];
+        const m2 = s.match(/[?&]id=([^&]+)/);
+        if(m2) return m2[1];
+      }
+    }catch(e){}
+    return s.trim();
+  }
+
   // ---------- Google Drive listing (public folder with API key) ----------
-  async function listDriveFiles(folderId, apiKey){
+  (folderId, apiKey){
     // List only images in the folder (no recursion). Requires folder "anyone with link" visible.
-    const q = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
+    const fid = normalizeFolderId(folderId);
+    const q = encodeURIComponent(`'${fid}' in parents and mimeType contains 'image/' and trashed = false`);
     const fields = encodeURIComponent('files(id,name,mimeType,thumbnailLink,webContentLink,webViewLink)');
     const url = `https://www.googleapis.com/drive/v3/files?q=${q}&key=${apiKey}&fields=${fields}&pageSize=1000&orderBy=name`;
     try{
