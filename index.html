@@ -41,6 +41,14 @@
     a{color:var(--brand)}
     .container{max-width:1100px;margin:0 auto;padding:24px}
 
+    /* Fix Khmer heading quá to */
+  html[data-lang="kh"] h1 {
+  font-size: 26px;   /* nhỏ hơn mặc định */
+  }
+  html[data-lang="kh"] h2 {
+  font-size: 20px;
+  }
+
     /* NAV */
     .nav{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
     .pill{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--soft);backdrop-filter:blur(6px);color:var(--text)}
@@ -410,9 +418,21 @@
     const counter = ()=> { const el=$('#pickCount'); if(el) el.textContent = String(selected.size); };
 
     files.forEach((f)=>{
-      const card = document.createElement('div'); card.className = 'imgCard'; card.tabIndex=0;
+      const card = document.createElement('div'); 
+card.className = 'imgCard'; 
+card.tabIndex=0;
 
-      const img = document.createElement('img'); img.loading='lazy'; img.alt=f.name; img.src=fileThumb(f.id);
+const img = document.createElement('img'); 
+img.loading='lazy'; 
+img.alt=f.name; 
+img.src=fileThumb(f.id);
+
+// click vào ảnh -> mở tab mới để xem trước
+img.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  window.open(f.webViewLink || fileDownload(f.id), '_blank');
+});
+
 
       // filename bottom-right
       const top = document.createElement('div'); top.className='imgTop';
@@ -420,7 +440,26 @@
 
       // checkbox top-left
       const fav = document.createElement('div'); fav.className='fav';
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+f.id; cb.setAttribute('aria-label',t('pick_photo'));
+      const cb = document.createElement('input'); 
+cb.type='checkbox'; 
+cb.id='cb_'+f.id; 
+cb.setAttribute('aria-label',t('pick_photo'));
+
+// click vào ô vuông -> toggle chọn
+cb.addEventListener('change', ()=>{
+  if(cb.checked){
+    if(selected.size >= maxPicks){ 
+      cb.checked = false; 
+      toast(t('max_picks',{n:maxPicks})); 
+      return;
+    }
+    selected.add(f.id);
+  } else {
+    selected.delete(f.id);
+  }
+  counter();
+});
+
 
       // download top-right
       const actions = document.createElement('div'); actions.className='imgActions';
@@ -440,11 +479,8 @@
         counter();
       }
 
-      // chọn ảnh khi bấm vùng trống
-      card.addEventListener('click', (e)=>{
-        if(e.target === note || e.target.closest('.dlbtn') || e.target === cb) return;
-        toggle();
-      }, {passive:true});
+    
+      
 
       // nhấn chuột phải để tải nhanh
       card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id),'_blank'); });
@@ -518,7 +554,7 @@
                   <li>Có thể dán URL thư mục (code tự tách ID) hoặc dán ID trực tiếp.</li>`,
       sec_warn:"Cảnh báo bảo mật: Trang này là static (không có server). Password chỉ được kiểm tra trong trình duyệt; người am hiểu có thể đọc token. Dùng như một lớp “khóa nhẹ”.",
       pw_label:"Mật khẩu", enter_pw:"Nhập mật khẩu để mở album.", may_expire:"Link có thể hết hạn sau ngày", ask_pw:"Vui lòng nhập mật khẩu",
-      wrong_pw:"Sai mật khẩu", selected:"Được chọn:", note_ph:"Ghi chú… (ví dụ: chỉnh sáng, cắt 4x5, xóa vật thể…)", pick_photo:"Chọn ảnh",
+      wrong_pw:"Sai mật khẩu", selected:"Được chọn:", note_ph:"Ghi chú…", pick_photo:"Chọn ảnh",
       folder:"Thư mục", need_api:"Vui lòng nhập API Key, Folder ID, mật khẩu", made_and_copied:"Đã tạo link & copy vào clipboard",
       made:"Đã tạo link", no_link:"Chưa có link. Nhấn “Tạo link” trước.", copied_link:"Đã copy link", copy_fail:"Copy thất bại",
       bad_token:"Token không hợp lệ.", cant_list:"Không thể tải danh sách ảnh. Kiểm tra API Key/ quyền chia sẻ folder.",
