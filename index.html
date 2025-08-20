@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
   <title>Client Gallery – Photographer</title>
   <meta name="description" content="Tạo link chia sẻ album cho khách có mật khẩu và xuất danh sách hình ưa thích – chạy trên GitHub Pages" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,8 @@
     .card{background:linear-gradient(180deg,#121a36 0%,#0f162e 100%);border:1px solid #2a355a;border-radius:16px;padding:18px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     label{display:block;font-weight:600;margin:6px 0 6px}
-    input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #344168;background:#0c1430;color:#e7ecff}
+    /* Fix zoom iOS: giữ font-size >=16 cho input/button */
+    input,select,textarea,button{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #344168;background:#0c1430;color:#e7ecff;font-size:16px}
     input::placeholder,textarea::placeholder{color:#90a0c0}
     .hint{font-size:12px;color:var(--muted)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
@@ -45,7 +46,8 @@
     .imgCard img{display:block;width:100%;height:260px;object-fit:cover;background:#0b1020}
     .imgTop{position:absolute;inset:8px 8px auto auto;display:flex;gap:8px;max-width:75%}
     .tag{padding:6px 8px;border-radius:999px;background:#0d1535b0;border:1px solid #2a355a;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .fav{position:absolute;left:8px;bottom:8px;display:flex;gap:8px;align-items:center}
+    /* Di chuyển cụm chọn lên góc trên trái */
+    .fav{position:absolute;left:8px;top:8px;bottom:auto;display:flex;gap:8px;align-items:center}
     .fav input{width:20px;height:20px}
     .counter{font-weight:700}
     .toast{position:fixed;right:18px;bottom:18px;background:#121a36;border:1px solid #2a355a;border-radius:12px;padding:12px 14px;display:none;max-width:80vw}
@@ -59,11 +61,13 @@
     #albumArea > .card > div:last-child{display:flex;gap:10px;flex-wrap:wrap}
     @supports(padding:max(0px)){ body{ padding-bottom: env(safe-area-inset-bottom) } }
     @media (max-width:560px){ .btn{padding:10px 12px;border-radius:10px} .tag{max-width:70vw} }
-    /* Nút tải xuống ở góc ảnh + ô ghi chú */
-    .imgActions{position:absolute;right:8px;bottom:8px;display:flex;gap:8px}
+    /* Nút tải xuống: chuyển lên góc trên phải */
+    .imgActions{position:absolute;right:8px;top:8px;bottom:auto;display:flex;gap:8px}
     .dlbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid #2a355a;background:#0d1535b0;backdrop-filter:blur(6px);cursor:pointer}
     .dlbtn svg{width:18px;height:18px}
     .note{display:block;width:100%;margin-top:8px;background:#0c1430;border:1px solid #344168;border-radius:10px;padding:10px 12px;color:#e7ecff}
+    /* Footer */
+    footer{margin:24px auto 8px;max-width:1100px;padding:8px 24px;color:#aab3c5;text-align:center;font-size:12px}
   </style>
 </head>
 <body>
@@ -90,7 +94,6 @@
         <div class="card">
           <h2>Khách truy cập</h2>
           <p>Nếu bạn là khách, bạn sẽ nhận 1 đường link. Mở link, nhập mật khẩu là thấy ảnh.</p>
-          <!-- <div class="small">Ví dụ: <span class="mono">https://tenban.github.io/gallery.html#token=...</span></div> -->
         </div>
       </div>
     </div>
@@ -124,9 +127,10 @@
             <input id="expiry" type="date"/>
           </div>
         </div>
-        <div style="margin-top:12px; display:flex; gap:10px">
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
           <button class="btn" id="btnGen">Tạo link</button>
           <button class="btn secondary" id="btnPreview">Xem thử gallery (không cần mật khẩu)</button>
+          <button class="btn ghost" id="btnCopyLink">Copy link</button>
         </div>
         <div id="genResult" class="hint" style="margin-top:12px"></div>
         <div class="sep"></div>
@@ -180,6 +184,8 @@
     <div class="toast" id="toast"></div>
   </div>
 
+  <footer>2025 copyright GIAUKIEN</footer>
+
   <script>
   // ---------- Helpers ----------
   const $ = (sel)=>document.querySelector(sel);
@@ -229,6 +235,7 @@
   }
 
   // ---------- Admin ----------
+  let lastGeneratedURL = "";
   function bindAdmin(){
     on('#btnGen','click', async ()=>{
       const album = $('#albumName')?.value.trim() || 'Album';
@@ -243,9 +250,15 @@
       const payload = { v:1, album, apiKey, folderId, pwHash, maxPicks, expiry };
       const token = b64uEncode(payload);
       const url = `${baseUrl}#token=${token}`;
+      lastGeneratedURL = url;
       const gr = $('#genResult');
       if(gr) gr.innerHTML = `<div class="mono" style="word-break:break-all">${url}</div><div class="small">Gửi link trên cho khách. ${expiry?`(Hết hạn: ${expiry})`:''}</div>`;
       try{ await navigator.clipboard.writeText(url); toast('Đã tạo link & copy vào clipboard'); }catch{ toast('Đã tạo link'); }
+    });
+
+    on('#btnCopyLink','click', async ()=>{
+      if(!lastGeneratedURL){ toast('Chưa có link. Nhấn “Tạo link” trước.'); return; }
+      try{ await navigator.clipboard.writeText(lastGeneratedURL); toast('Đã copy link'); }catch{ toast('Copy thất bại'); }
     });
 
     on('#btnPreview','click', async ()=>{
@@ -319,7 +332,7 @@
     const notes = new Map(); // id -> note
     const counter = ()=> { const el=$('#pickCount'); if(el) el.textContent = String(selected.size); };
 
-    files.forEach((f, idx)=>{
+    files.forEach((f)=>{
       const card = document.createElement('div'); card.className = 'imgCard'; card.tabIndex=0;
 
       const img = document.createElement('img'); img.loading='lazy'; img.alt=f.name; img.src=fileThumb(f.id);
@@ -327,10 +340,12 @@
       const top = document.createElement('div'); top.className='imgTop';
       const nameTag = document.createElement('div'); nameTag.className='tag mono'; nameTag.title=f.name; nameTag.textContent=f.name; top.appendChild(nameTag);
 
+      // Cụm chọn đặt ở góc trên trái
       const fav = document.createElement('div'); fav.className='fav';
       const cb = document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+f.id; cb.setAttribute('aria-label','Chọn ảnh');
       const lb = document.createElement('label'); lb.className='tag'; lb.htmlFor=cb.id; lb.textContent='Chọn'; lb.setAttribute('role','button');
 
+      // Nút tải ở góc trên phải
       const actions = document.createElement('div'); actions.className='imgActions';
       const dl = document.createElement('a'); dl.className='dlbtn'; dl.href=fileDownload(f.id); dl.title='Tải ảnh'; dl.setAttribute('download','');
       dl.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -338,7 +353,6 @@
       const note = document.createElement('input'); note.className='note'; note.type='text'; note.placeholder='Ghi chú… (ví dụ: chỉnh sáng, cắt 4x5, xóa vật thể…)';
       note.addEventListener('input', ()=>{ notes.set(f.id, note.value.trim()); });
 
-      // Toggle chọn khi bấm bất kỳ nơi nào trên thẻ (trừ khi bấm vào ghi chú hoặc nút tải)
       function toggle(){
         if(!cb.checked){
           if(selected.size >= maxPicks){ toast(`Tối đa ${maxPicks} ảnh`); return; }
@@ -349,15 +363,12 @@
         counter();
       }
 
+      // Bấm ở bất kỳ đâu trên thẻ (trừ ô ghi chú, checkbox, nút tải) để chọn
       card.addEventListener('click', (e)=>{
         if(e.target === note || e.target.closest('.dlbtn') || e.target === cb) return;
         toggle();
       }, {passive:true});
-
       lb.addEventListener('click', (e)=>{ e.preventDefault(); toggle(); }, {passive:false});
-
-      // Right-click desktop để tải
-      card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id),'_blank'); });
 
       fav.append(cb, lb);
       actions.appendChild(dl);
@@ -369,7 +380,6 @@
 
     on('#btnExport','click', ()=>{
       if(!selected.size){ toast('Chưa chọn ảnh nào'); return; }
-      // Xuất: STT + tên file + (ghi chú nếu có)
       const chosen = files.filter(f=>selected.has(f.id));
       const lines = chosen.map((f,i)=>{
         const idx = String(i+1).padStart(3,'0');
