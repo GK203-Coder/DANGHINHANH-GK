@@ -430,8 +430,9 @@ img.src=fileThumb(f.id);
 // click vào ảnh -> mở tab mới để xem trước
 img.addEventListener('click', (e)=>{
   e.stopPropagation();
-  window.open(f.webViewLink || fileDownload(f.id), '_blank');
+  openLightbox(f.webViewLink || fileDownload(f.id));
 });
+
 
 
       // filename bottom-right
@@ -684,6 +685,27 @@ cb.addEventListener('change', ()=>{
     renderByHash();
   }
   document.addEventListener('DOMContentLoaded', bindAll);
+  const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxClose = document.getElementById('lightboxClose');
+
+function openLightbox(src){
+  lightboxImg.src = src;
+  lightbox.style.display = 'flex';
+}
+function closeLightbox(){
+  lightbox.style.display = 'none';
+  lightboxImg.src = '';
+}
+
+lightboxClose.onclick = closeLightbox;
+lightbox.onclick = (e)=>{ if(e.target===lightbox) closeLightbox(); };
+
   </script>
+  <div id="lightbox" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); justify-content:center; align-items:center; z-index:2000;">
+  <img id="lightboxImg" src="" alt="preview" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,.6)">
+  <span id="lightboxClose" style="position:absolute; top:20px; right:30px; font-size:32px; color:white; cursor:pointer;">×</span>
+</div>
+
 </body>
 </html>
