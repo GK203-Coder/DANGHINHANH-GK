@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" data-lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
@@ -7,66 +7,109 @@
   <meta name="description" content="Tạo link chia sẻ album cho khách có mật khẩu và xuất danh sách hình ưa thích – chạy trên GitHub Pages" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Fonts: Poppins (VI/EN), Bayon + Siemreap (Khmer) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Bayon&family=Siemreap&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg1:#0b1020;--bg2:#0e1326;--card:#12192e;--muted:#aab3c5;--brand:#7c9aff;--brand2:#5df2d6;--ok:#7ef78f;--warn:#ffce6b;--err:#ff7f7f;
+      --text:#eaf0ff; --soft:#0f1530a6; --line:#2a355a;
     }
+    /* Light theme overrides */
+    :root.light{
+      --bg1:#f5f7ff; --bg2:#e9eeff; --card:#ffffff; --muted:#4c5a79; --brand:#3358ff; --brand2:#0ab39c;
+      --text:#0c1230; --soft:#ffffffcc; --line:#d7def3;
+    }
+
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,Noto Sans,"Apple Color Emoji","Segoe UI Emoji";background:radial-gradient(1200px 600px at 10% -10%,#1a2150 0%,#0b1020 45%,#070b18 100%);color:#eaf0ff}
+    /* Font families theo ngôn ngữ, khoá line-height để không đổi kích thước */
+    html[data-lang="vi"] body,
+    html[data-lang="en"] body{font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.5}
+    html[data-lang="kh"] body{font-family:Siemreap,Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.5}
+    /* Tiêu đề Khmer dùng Bayon, giữ size/line-height cố định */
+    h1,h2{line-height:1.25}
+    html[data-lang="kh"] h1,
+    html[data-lang="kh"] h2{font-family:Bayon,Siemreap,Poppins,system-ui}
+
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 10% -10%,#1a2150 0%,var(--bg1) 45%,#070b18 100%);color:var(--text);
+      transition:background .25s ease,color .25s ease;
+    }
+    :root.light body{ background:linear-gradient(180deg,var(--bg1),var(--bg2)) }
+
     a{color:var(--brand)}
     .container{max-width:1100px;margin:0 auto;padding:24px}
-    .nav{display:flex;gap:10px;align-items:center;justify-content:space-between}
-    .pill{padding:8px 14px;border:1px solid #2a355a;border-radius:999px;background:#0f1530a6;backdrop-filter:blur(6px);color:#dbe4ff}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid #2a355a;background:linear-gradient(180deg,#18224a,#111834);color:#eaf0ff;cursor:pointer;font-weight:600;user-select:none;touch-action:manipulation}
-    .btn:hover{filter:brightness(1.1)}
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:#111834}
-    .btn.success{border-color:#2f7042;background:linear-gradient(180deg,#174e2c,#143924)}
-    .btn.warn{border-color:#6a5b2a;background:linear-gradient(180deg,#564517,#3c310e)}
-    .btn.ghost{background:transparent;border-color:#344168}
-    .grid{display:grid;gap:18px}
-    .hero{padding:36px 0 8px}
+
+    /* NAV */
+    .nav{display:flex;gap:12px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .pill{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--soft);backdrop-filter:blur(6px);color:var(--text)}
+    .actions{display:flex;gap:8px;align-items:center}
+    .iconbtn{
+      width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+      background:linear-gradient(180deg,#18224a,#111834);display:inline-flex;align-items:center;justify-content:center;
+      color:var(--text);cursor:pointer;user-select:none;touch-action:manipulation
+    }
+    :root.light .iconbtn{ background:#fff }
+    .iconbtn:hover{filter:brightness(1.06)}
+    .iconbtn svg{width:20px;height:20px}
+
+    /* Language menu */
+    .langwrap{position:relative}
+    .langMenu{
+      position:absolute; right:0; top:48px; min-width:160px;
+      background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:6px;
+      backdrop-filter:blur(8px);
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+    .langMenu.hidden{display:none}
+    .langItem{
+      display:flex; align-items:center; gap:10px; width:100%;
+      padding:10px 12px; border-radius:10px; border:1px solid transparent;
+      background:transparent; color:var(--text); cursor:pointer; font-size:14px; line-height:1.3;
+    }
+    .langItem:hover{background:rgba(255,255,255,.06); border-color:var(--line)}
+    .flag{font-size:18px; width:20px}
+
+    .hero{padding:28px 0 8px}
     h1{font-size:32px;margin:0 0 8px}
     h2{font-size:22px;margin:20px 0 10px}
-    .card{background:linear-gradient(180deg,#121a36 0%,#0f162e 100%);border:1px solid #2a355a;border-radius:16px;padding:18px}
+    .card{background:linear-gradient(180deg,#121a36 0%,#0f162e 100%);border:1px solid var(--line);border-radius:16px;padding:18px}
+    :root.light .card{background:#fff}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     label{display:block;font-weight:600;margin:6px 0 6px}
-    /* Fix zoom iOS: giữ font-size >=16 cho input/button */
+    /* Fix zoom iOS: giữ font-size >=16 */
     input,select,textarea,button{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #344168;background:#0c1430;color:#e7ecff;font-size:16px}
+    :root.light input,:root.light textarea,:root.light button{background:#f5f7ff;color:#0c1230;border-color:#cbd6ff}
     input::placeholder,textarea::placeholder{color:#90a0c0}
     .hint{font-size:12px;color:var(--muted)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .center{display:flex;align-items:center;justify-content:center}
     .gallery{--col:3;display:grid;grid-template-columns:repeat(var(--col),1fr);gap:12px}
     @media (max-width:900px){.row{grid-template-columns:1fr}.gallery{--col:2}}
     @media (max-width:560px){.gallery{--col:1}}
-    .imgCard{position:relative;border:1px solid #2a355a;border-radius:12px;overflow:hidden;background:#0b1020}
+    .imgCard{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0b1020}
+    :root.light .imgCard{background:#eaf0ff}
     .imgCard img{display:block;width:100%;height:260px;object-fit:cover;background:#0b1020}
-    /* Tên file: chuyển xuống góc dưới phải */
+    /* Tên file: góc dưới phải */
     .imgTop{position:absolute;inset:auto 8px 8px auto;display:flex;gap:8px;max-width:75%}
-    .tag{padding:6px 8px;border-radius:999px;background:#0d1535b0;border:1px solid #2a355a;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    /* Cụm chọn: chỉ checkbox, góc trên trái */
+    .tag{padding:6px 8px;border-radius:999px;background:#0d1535b0;border:1px solid var(--line);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf0ff}
+    :root.light .tag{background:#0000003a;color:#fff;border-color:#ffffff80}
+    /* Checkbox ở góc trên trái */
     .fav{position:absolute;left:8px;top:8px;display:flex;gap:8px;align-items:center}
     .fav input{width:22px;height:22px;border-radius:6px}
     .counter{font-weight:700}
-    .toast{position:fixed;right:18px;bottom:18px;background:#121a36;border:1px solid #2a355a;border-radius:12px;padding:12px 14px;display:none;max-width:80vw}
+    .toast{position:fixed;right:18px;bottom:18px;background:#121a36;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:none;max-width:80vw;color:#eaf0ff}
+    :root.light .toast{background:#2a355a;color:#fff}
     .hidden{display:none !important}
-    .sep{height:1px;background:linear-gradient(90deg,transparent,#2a355a,transparent);margin:16px 0}
+    .sep{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:16px 0}
     .small{font-size:12px}
-    .kbd{border:1px solid #394777;border-radius:8px;padding:2px 6px;background:#0d1535}
     .danger{color:var(--err)}
-    /* Quấn nút khi hẹp + safe-area */
-    #albumArea > .card{flex-wrap:wrap}
-    #albumArea > .card > div:last-child{display:flex;gap:10px;flex-wrap:wrap}
-    @supports(padding:max(0px)){ body{ padding-bottom: env(safe-area-inset-bottom) } }
-    @media (max-width:560px){ .btn{padding:10px 12px;border-radius:10px} .tag{max-width:70vw} }
     /* Nút tải xuống: góc trên phải */
     .imgActions{position:absolute;right:8px;top:8px;display:flex;gap:8px}
-    .dlbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid #2a355a;background:#0d1535b0;backdrop-filter:blur(6px);cursor:pointer}
+    .dlbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#0d1535b0;backdrop-filter:blur(6px);cursor:pointer;color:#fff}
     .dlbtn svg{width:18px;height:18px}
     .note{display:block;width:100%;margin-top:8px;background:#0c1430;border:1px solid #344168;border-radius:10px;padding:10px 12px;color:#e7ecff}
+    :root.light .note{background:#f6f8ff;color:#0c1230;border-color:#cbd6ff}
     /* Footer */
     footer{margin:24px auto 8px;max-width:1100px;padding:8px 24px;color:#aab3c5;text-align:center;font-size:12px}
   </style>
@@ -74,90 +117,123 @@
 <body>
   <div class="container">
     <div class="nav">
-      <div class="pill mono">Client Gallery · GIAUKIEN</div>
-      <div style="display:flex; gap:8px">
-        <button class="btn ghost" id="goHome">Trang chủ</button>
-        <button class="btn" id="goAdmin">Tạo link cho khách</button>
+      <div class="pill mono" id="brand">CLIENT GALLERY · GIAUKIEN</div>
+
+      <!-- ICON BAR -->
+      <div class="actions">
+        <!-- Home -->
+        <button class="iconbtn" id="goHome" title="Trang chủ" aria-label="Trang chủ">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8v8a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2v-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <!-- Admin / Create link -->
+        <button class="iconbtn" id="goAdmin" title="Tạo link cho khách" aria-label="Tạo link">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 1 0-7.07-7.07L10.5 5M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 1 0 7.07 7.07L13.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <!-- Language (globe) – menu -->
+        <div class="langwrap">
+          <button class="iconbtn" id="toggleLang" title="Tiếng Việt" aria-label="Tiếng Việt">
+            <svg viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+              <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div id="langMenu" class="langMenu hidden" role="menu" aria-label="Languages">
+            <button class="langItem" data-lang="vi"><span class="flag">🇻🇳</span>Tiếng Việt</button>
+            <button class="langItem" data-lang="en"><span class="flag">🇬🇧</span>English</button>
+            <button class="langItem" data-lang="kh"><span class="flag">🇰🇭</span>ភាសាខ្មែរ</button>
+          </div>
+        </div>
+        <!-- Theme toggle -->
+        <button class="iconbtn" id="toggleTheme" title="Sáng/Tối" aria-label="Đổi giao diện">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 9 9c0-.34-.02-.68-.06-1A7 7 0 0 1 12 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </div>
 
+    <!-- HOME -->
     <div class="hero" id="homeView">
-      <h1>Chia sẻ album cho khách</h1>
-      <p class="hint">Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
+      <h1 id="t_home_title">Chia sẻ album cho khách</h1>
+      <p class="hint" id="t_home_hint">Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.</p>
       <div class="sep"></div>
       <div class="row">
         <div class="card">
-          <h2>Tạo link cho khách</h2>
-          <p>Vào phần <strong>Tạo link</strong> để nhập <em>API Key</em>, <em>Folder ID</em> của Google Drive, đặt <em>mật khẩu</em> và <em>giới hạn số ảnh được chọn</em>. Hệ thống sẽ tạo URL riêng gửi cho khách.</p>
-          <button class="btn" id="ctaAdmin">Mở trình tạo link</button>
-          <p class="hint">Lưu ý: vì chạy tĩnh trên Pages, mật khẩu chỉ kiểm tra ở trình duyệt (không chống được người rành kỹ thuật). Nếu bạn cần bảo vệ thật sự, nên dùng server/ serverless.</p>
+          <h2 id="t_card_make_title">Tạo link cho khách</h2>
+          <p id="t_card_make_desc">Vào phần <strong>Tạo link</strong> để nhập <em>API Key</em>, <em>Folder ID</em> của Google Drive, đặt <em>mật khẩu</em> và <em>giới hạn số ảnh được chọn</em>. Hệ thống sẽ tạo URL riêng gửi cho khách.</p>
+          <button class="iconbtn" id="ctaAdmin" title="Mở trình tạo link">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <p class="hint" id="t_card_make_note">Lưu ý: vì chạy tĩnh trên Pages, mật khẩu chỉ kiểm tra ở trình duyệt (không chống được người rành kỹ thuật). Nếu bạn cần bảo vệ thật sự, nên dùng server/ serverless.</p>
         </div>
         <div class="card">
-          <h2>Khách truy cập</h2>
-          <p>Nếu bạn là khách, bạn sẽ nhận 1 đường link. Mở link, nhập mật khẩu là thấy ảnh.</p>
+          <h2 id="t_card_client_title">Khách truy cập</h2>
+          <p id="t_card_client_desc">Nếu bạn là khách, bạn sẽ nhận 1 đường link. Mở link, nhập mật khẩu là thấy ảnh.</p>
         </div>
       </div>
     </div>
 
+    <!-- ADMIN -->
     <div id="adminView" class="hidden">
-      <h1>Trình tạo link cho khách</h1>
+      <h1 id="t_admin_title">Trình tạo link cho khách</h1>
       <div class="card">
         <div class="row">
           <div>
-            <label>Tên album</label>
-            <input id="albumName" placeholder="VD: Wedding Linh & Nam"/>
+            <label id="t_label_album">Tên album</label>
+            <input id="albumName" placeholder="VD: Wedding, GiauKien, ..."/>
           </div>
           <div>
-            <label>Giới hạn ảnh khách được chọn</label>
+            <label id="t_label_limit">Giới hạn ảnh khách được chọn</label>
             <input id="maxPicks" type="number" min="1" value="20" />
           </div>
           <div>
-            <label>Google Drive API Key <span class="hint">(yêu cầu bật Drive API & cho folder ở chế độ Anyone with link)</span></label>
+            <label id="t_label_apikey">Google Drive API Key <span class="hint" id="t_label_apikey_hint">(yêu cầu bật Drive API & cho folder ở chế độ Anyone with link)</span></label>
             <input id="apiKey" placeholder="AIza..."/>
           </div>
           <div>
-            <label>Google Drive Folder ID</label>
+            <label id="t_label_folder">Google Drive Folder ID</label>
             <input id="folderId" class="mono" placeholder="Dán URL thư mục hoặc ID…"/>
           </div>
           <div>
-            <label>Mật khẩu truy cập (khách sẽ nhập)</label>
+            <label id="t_label_pw">Mật khẩu truy cập (khách sẽ nhập)</label>
             <input id="password" type="password" placeholder="Đặt mật khẩu"/>
           </div>
           <div>
-            <label>Ngày hết hạn (không bắt buộc)</label>
+            <label id="t_label_exp">Ngày hết hạn (không bắt buộc)</label>
             <input id="expiry" type="date"/>
           </div>
         </div>
         <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
-          <button class="btn" id="btnGen">Tạo link</button>
-          <button class="btn secondary" id="btnPreview">Xem thử gallery (không cần mật khẩu)</button>
-          <button class="btn ghost" id="btnCopyLink">Copy link</button>
+          <button class="iconbtn" id="btnGen" title="Tạo link"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="iconbtn" id="btnPreview" title="Xem thử gallery"><svg viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></button>
+          <button class="iconbtn" id="btnCopyLink" title="Copy link"><svg viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 1 0-7.07-7.07L10.5 5M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 1 0 7.07 7.07L13.5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
         <div id="genResult" class="hint" style="margin-top:12px"></div>
         <div class="sep"></div>
         <details>
-          <summary><strong>Hướng dẫn lấy API Key & Folder ID</strong></summary>
-          <ol class="small">
+          <summary id="t_guide_title"><strong>Hướng dẫn lấy API Key & Folder ID</strong></summary>
+          <ol class="small" id="t_guide_list">
             <li>Mở <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → tạo Project → bật <em>Google Drive API</em> → tạo <em>API Key</em>.</li>
             <li>Trên Google Drive, để folder chứa ảnh ở chế độ <em>Anyone with the link – Viewer</em>.</li>
-            <li>Có thể dán **URL thư mục** (code tự tách ID) hoặc dán **ID** trực tiếp.</li>
+            <li>Có thể dán URL thư mục (code tự tách ID) hoặc dán ID trực tiếp.</li>
           </ol>
         </details>
-        <p class="small danger">Cảnh báo bảo mật: Trang này là static (không có server). Password chỉ được kiểm tra trong trình duyệt; người am hiểu có thể đọc token. Dùng như một lớp “khóa nhẹ”.</p>
+        <p class="small danger" id="t_sec_warn">Cảnh báo bảo mật: Trang này là static (không có server). Password chỉ được kiểm tra trong trình duyệt; người am hiểu có thể đọc token. Dùng như một lớp “khóa nhẹ”.</p>
       </div>
     </div>
 
+    <!-- CLIENT -->
     <div id="clientView" class="hidden">
       <div class="card" id="gate">
         <h2 id="albumTitle">Album</h2>
         <p class="hint" id="albumMeta">Nhập mật khẩu để mở album.</p>
         <div class="row">
           <div>
-            <label>Mật khẩu</label>
+            <label id="t_pw_label">Mật khẩu</label>
             <input id="pwInput" type="password" placeholder="Nhập mật khẩu bạn đã nhận" />
           </div>
           <div style="display:flex;align-items:end">
-            <button class="btn" id="btnOpen">Mở album</button>
+            <button class="iconbtn" id="btnOpen" title="Mở album">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12h18M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </div>
         <p id="pwMsg" class="small"></p>
@@ -170,9 +246,13 @@
             <div class="hint" id="liveMeta"></div>
           </div>
           <div style="display:flex; gap:10px; align-items:center">
-            <div class="tag">Được chọn: <span class="counter" id="pickCount">0</span>/<span id="pickMax">0</span></div>
-            <button class="btn success" id="btnExport">Xuất DS (.txt)</button>
-            <button class="btn ghost" id="btnCopy">Copy DS</button>
+            <div class="tag"><span id="t_selected">Được chọn:</span> <span class="counter" id="pickCount">0</span>/<span id="pickMax">0</span></div>
+            <button class="iconbtn" id="btnExport" title="Xuất DS (.txt)">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="iconbtn" id="btnCopy" title="Copy DS">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/><rect x="3" y="3" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
           </div>
         </div>
         <div id="galleryWrap" class="card">
@@ -245,20 +325,20 @@
       const password = $('#password')?.value || '';
       const maxPicks = Math.max(1, parseInt($('#maxPicks')?.value||'1'));
       const expiry = $('#expiry')?.value || null;
-      if(!apiKey || !folderId || !password){ toast('Vui lòng nhập API Key, Folder ID, mật khẩu'); return; }
+      if(!apiKey || !folderId || !password){ toast(t('need_api')); return; }
       const pwHash = await sha256(password);
       const payload = { v:1, album, apiKey, folderId, pwHash, maxPicks, expiry };
       const token = b64uEncode(payload);
       const url = `${baseUrl}#token=${token}`;
       lastGeneratedURL = url;
       const gr = $('#genResult');
-      if(gr) gr.innerHTML = `<div class="mono" style="word-break:break-all">${url}</div><div class="small">Gửi link trên cho khách. ${expiry?`(Hết hạn: ${expiry})`:''}</div>`;
-      try{ await navigator.clipboard.writeText(url); toast('Đã tạo link & copy vào clipboard'); }catch{ toast('Đã tạo link'); }
+      if(gr) gr.innerHTML = `<div class="mono" style="word-break:break-all">${url}</div><div class="small">${expiry? t('may_expire')+': '+expiry:''}</div>`;
+      try{ await navigator.clipboard.writeText(url); toast(t('made_and_copied')); }catch{ toast(t('made')); }
     });
 
     on('#btnCopyLink','click', async ()=>{
-      if(!lastGeneratedURL){ toast('Chưa có link. Nhấn “Tạo link” trước.'); return; }
-      try{ await navigator.clipboard.writeText(lastGeneratedURL); toast('Đã copy link'); }catch{ toast('Copy thất bại'); }
+      if(!lastGeneratedURL){ toast(t('no_link')); return; }
+      try{ await navigator.clipboard.writeText(lastGeneratedURL); toast(t('copied_link')); }catch{ toast(t('copy_fail')); }
     });
 
     on('#btnPreview','click', async ()=>{
@@ -266,7 +346,7 @@
       const folderId = normalizeFolderId($('#folderId')?.value.trim()||'');
       const album = $('#albumName')?.value.trim()||'Album';
       const maxPicks = Math.max(1, parseInt($('#maxPicks')?.value||'1'));
-      if(!apiKey || !folderId){ toast('Nhập API Key & Folder ID'); return; }
+      if(!apiKey || !folderId){ toast(t('need_api')); return; }
       const payload = { v:1, album, apiKey, folderId, pwHash:"", maxPicks, expiry:null };
       goto('client'); initClient(payload, {skipPw:true});
     });
@@ -275,7 +355,7 @@
   // ---------- Client ----------
   function decodeToken(tokenStr){
     const p = b64uDecode(tokenStr);
-    if(!p || !p.folderId || !p.apiKey) { toast('Token không hợp lệ.'); goto('home'); return null; }
+    if(!p || !p.folderId || !p.apiKey) { toast(t('bad_token')); goto('home'); return null; }
     return p;
   }
 
@@ -283,7 +363,7 @@
     if(!payload) return;
     const {album, maxPicks, expiry} = payload;
     $('#albumTitle').textContent = album || 'Album';
-    $('#albumMeta').textContent = expiry? `Link có thể hết hạn sau ngày ${expiry}.` : 'Nhập mật khẩu để mở album.';
+    $('#albumMeta').textContent = expiry? `${t('may_expire')} ${expiry}.` : t('enter_pw');
     $('#pickMax').textContent = maxPicks;
     show($('#gate'), !opts.skipPw);
     show($('#albumArea'), !!opts.skipPw);
@@ -291,9 +371,9 @@
 
     on('#btnOpen','click', async ()=>{
       const pw = $('#pwInput')?.value || '';
-      if(!pw){ $('#pwMsg').textContent = 'Vui lòng nhập mật khẩu'; return; }
+      if(!pw){ $('#pwMsg').textContent = t('ask_pw'); return; }
       const hash = await sha256(pw);
-      if(hash !== payload.pwHash){ $('#pwMsg').textContent = 'Sai mật khẩu'; return; }
+      if(hash !== payload.pwHash){ $('#pwMsg').textContent = t('wrong_pw'); return; }
       $('#pwMsg').textContent='';
       show($('#gate'), false); show($('#albumArea'), true);
       loadGallery(payload);
@@ -312,12 +392,9 @@
       const {files} = await res.json();
       return files || [];
     }catch(e){
-      console.error(e); toast('Không thể tải danh sách ảnh. Kiểm tra API Key/ quyền chia sẻ folder.');
-      return [];
+      console.error(e); toast(t('cant_list')); return [];
     }
   }
-
-  // Thumbnail hiển thị tốt cả RAW/HEIC; tải bản gốc
   const fileThumb = (id)=>`https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
   const fileDownload = (id)=>`https://drive.google.com/uc?export=download&id=${id}`;
 
@@ -329,7 +406,7 @@
     show($('#empty'), false);
 
     const selected = new Set();
-    const notes = new Map(); // id -> note
+    const notes = new Map();
     const counter = ()=> { const el=$('#pickCount'); if(el) el.textContent = String(selected.size); };
 
     files.forEach((f)=>{
@@ -337,25 +414,25 @@
 
       const img = document.createElement('img'); img.loading='lazy'; img.alt=f.name; img.src=fileThumb(f.id);
 
-      // Tên file ở góc dưới phải
+      // filename bottom-right
       const top = document.createElement('div'); top.className='imgTop';
       const nameTag = document.createElement('div'); nameTag.className='tag mono'; nameTag.title=f.name; nameTag.textContent=f.name; top.appendChild(nameTag);
 
-      // Checkbox chọn ở góc trên trái (không có chữ "Chọn")
+      // checkbox top-left
       const fav = document.createElement('div'); fav.className='fav';
-      const cb = document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+f.id; cb.setAttribute('aria-label','Chọn ảnh');
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.id='cb_'+f.id; cb.setAttribute('aria-label',t('pick_photo'));
 
-      // Nút tải ở góc trên phải
+      // download top-right
       const actions = document.createElement('div'); actions.className='imgActions';
-      const dl = document.createElement('a'); dl.className='dlbtn'; dl.href=fileDownload(f.id); dl.title='Tải ảnh'; dl.setAttribute('download','');
+      const dl = document.createElement('a'); dl.className='dlbtn'; dl.href=fileDownload(f.id); dl.title=t('download'); dl.setAttribute('download','');
       dl.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-      const note = document.createElement('input'); note.className='note'; note.type='text'; note.placeholder='Ghi chú… (ví dụ: chỉnh sáng, cắt 4x5, xóa vật thể…)';
+      const note = document.createElement('input'); note.className='note'; note.type='text'; note.placeholder=t('note_ph');
       note.addEventListener('input', ()=>{ notes.set(f.id, note.value.trim()); });
 
       function toggle(){
         if(!cb.checked){
-          if(selected.size >= maxPicks){ toast(`Tối đa ${maxPicks} ảnh`); return; }
+          if(selected.size >= maxPicks){ toast(t('max_picks', {n:maxPicks})); return; }
           cb.checked = true; selected.add(f.id);
         }else{
           cb.checked = false; selected.delete(f.id);
@@ -363,29 +440,24 @@
         counter();
       }
 
-      // Bấm ở bất kỳ đâu trên thẻ (trừ ô ghi chú, checkbox, nút tải) để chọn
+      // chọn ảnh khi bấm vùng trống
       card.addEventListener('click', (e)=>{
         if(e.target === note || e.target.closest('.dlbtn') || e.target === cb) return;
         toggle();
       }, {passive:true});
 
-      // Right-click desktop để tải
+      // nhấn chuột phải để tải nhanh
       card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); window.open(fileDownload(f.id),'_blank'); });
 
-      fav.append(cb);
-      card.append(img, top, fav, actions, dl, note);
-      actions.appendChild(dl);
-      // sửa thứ tự: img, tên, checkbox, nút tải, ghi chú
-      card.innerHTML = '';
+      fav.append(cb); actions.appendChild(dl);
       card.append(img, top, fav, actions, note);
-
       wrap.appendChild(card);
     });
 
     counter();
 
     on('#btnExport','click', ()=>{
-      if(!selected.size){ toast('Chưa chọn ảnh nào'); return; }
+      if(!selected.size){ toast(t('none_selected')); return; }
       const chosen = files.filter(f=>selected.has(f.id));
       const lines = chosen.map((f,i)=>{
         const idx = String(i+1).padStart(3,'0');
@@ -396,7 +468,7 @@
       const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='favorites.txt'; a.click();
       setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-      toast('Đã tải favorites.txt');
+      toast(t('downloaded_txt'));
     });
 
     on('#btnCopy','click', async ()=>{
@@ -407,31 +479,175 @@
         return n ? `${idx}  ${f.name}  — ${n}` : `${idx}  ${f.name}`;
       });
       const txt = lines.join('\n');
-      try{ await navigator.clipboard.writeText(txt); toast('Đã copy danh sách'); } catch{ toast('Copy thất bại'); }
+      try{ await navigator.clipboard.writeText(txt); toast(t('copied_list')); } catch{ toast(t('copy_fail')); }
     });
   }
 
   async function loadGallery(p){
     $('#liveTitle').textContent = p.album || 'Album';
-    $('#liveMeta').textContent = `Thư mục: ${normalizeFolderId(p.folderId)}`;
+    $('#liveMeta').textContent = `${t('folder')}: ${normalizeFolderId(p.folderId)}`;
     const list = await listDriveFiles(p.folderId, p.apiKey);
     renderGallery(list, p.maxPicks);
   }
 
-  // ---------- Boot ----------
+  // ---------- Theme (single definition) ----------
+  const toggleThemeBtn = $('#toggleTheme');
+  function applyTheme(theme){ // 'light' | 'dark'
+    const root = document.documentElement;
+    root.classList.toggle('light', theme==='light');
+    localStorage.setItem('cg_theme', theme);
+  }
+  on(toggleThemeBtn,'click', ()=>{
+    const cur = localStorage.getItem('cg_theme') || 'dark';
+    applyTheme(cur==='dark'?'light':'dark');
+  });
+  applyTheme(localStorage.getItem('cg_theme') || 'dark');
+
+  // ---------- i18n ----------
+  const I18N = {
+    vi:{ home_title:"Share album cho khách", home_hint:"Single-file · chạy trên GIAUKIEN · dùng Google Drive để lưu ảnh · khách xem/ tải/ chọn ảnh yêu thích.",
+      make_title:"Tạo link cho khách", make_desc:'Vào phần <strong>Tạo link</strong> để nhập <em>API Key</em>, <em>Folder ID</em> của Google Drive, đặt <em>mật khẩu</em> và <em>giới hạn số ảnh được chọn</em>. Hệ thống sẽ tạo URL riêng gửi cho khách.',
+      make_note:"Lưu ý: vì chạy tĩnh trên Pages, mật khẩu chỉ kiểm tra ở trình duyệt (không chống được người rành kỹ thuật). Nếu bạn cần bảo vệ thật sự, nên dùng server/ serverless.",
+      client_title:"Khách truy cập", client_desc:"Nếu bạn là khách, bạn sẽ nhận 1 đường link. Mở link, nhập mật khẩu là thấy ảnh.",
+      admin_title:"Trình tạo link cho khách", label_album:"Tên album", label_limit:"Giới hạn ảnh khách được chọn",
+      label_apikey:"Google Drive API Key", label_apikey_hint:"(yêu cầu bật Drive API & cho folder ở chế độ Anyone with link)",
+      label_folder:"Google Drive Folder ID", label_pw:"Mật khẩu truy cập (khách sẽ nhập)", label_exp:"Ngày hết hạn (không bắt buộc)",
+      guide_title:"Hướng dẫn lấy API Key & Folder ID",
+      guide_list:`<li>Mở <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → tạo Project → bật <em>Google Drive API</em> → tạo <em>API Key</em>.</li>
+                  <li>Trên Google Drive, để folder chứa ảnh ở chế độ <em>Anyone with the link – Viewer</em>.</li>
+                  <li>Có thể dán URL thư mục (code tự tách ID) hoặc dán ID trực tiếp.</li>`,
+      sec_warn:"Cảnh báo bảo mật: Trang này là static (không có server). Password chỉ được kiểm tra trong trình duyệt; người am hiểu có thể đọc token. Dùng như một lớp “khóa nhẹ”.",
+      pw_label:"Mật khẩu", enter_pw:"Nhập mật khẩu để mở album.", may_expire:"Link có thể hết hạn sau ngày", ask_pw:"Vui lòng nhập mật khẩu",
+      wrong_pw:"Sai mật khẩu", selected:"Được chọn:", note_ph:"Ghi chú… (ví dụ: chỉnh sáng, cắt 4x5, xóa vật thể…)", pick_photo:"Chọn ảnh",
+      folder:"Thư mục", need_api:"Vui lòng nhập API Key, Folder ID, mật khẩu", made_and_copied:"Đã tạo link & copy vào clipboard",
+      made:"Đã tạo link", no_link:"Chưa có link. Nhấn “Tạo link” trước.", copied_link:"Đã copy link", copy_fail:"Copy thất bại",
+      bad_token:"Token không hợp lệ.", cant_list:"Không thể tải danh sách ảnh. Kiểm tra API Key/ quyền chia sẻ folder.",
+      max_picks: ({n})=>`Tối đa ${n} ảnh`, none_selected:"Chưa chọn ảnh nào", downloaded_txt:"Đã tải favorites.txt",
+      copied_list:"Đã copy danh sách", download:"Tải ảnh",
+    },
+    en:{ home_title:"Share client album", home_hint:"Single-file on GIAUKIEN · Photos on Google Drive · Clients can view / download / favorite.",
+      make_title:"Create client link", make_desc:'Open <strong>Create link</strong> to enter <em>API Key</em>, <em>Folder ID</em>, set <em>password</em> and <em>pick limit</em>. A private URL will be created for your client.',
+      make_note:"Note: this is a static page. Password is client-side only. For strong protection, use a server/serverless backend.",
+      client_title:"Client access", client_desc:"Clients receive a link. Open it, enter password, and view photos.",
+      admin_title:"Link builder", label_album:"Album name", label_limit:"Pick limit", label_apikey:"Google Drive API Key",
+      label_apikey_hint:"(enable Drive API & set folder to Anyone with link)", label_folder:"Google Drive Folder ID",
+      label_pw:"Access password (client enters)", label_exp:"Expiry date (optional)", guide_title:"How to get API Key & Folder ID",
+      guide_list:`<li>Open <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → create a Project → enable <em>Google Drive API</em> → create an <em>API Key</em>.</li>
+                  <li>On Google Drive, set the folder to <em>Anyone with the link – Viewer</em>.</li>
+                  <li>Paste the folder URL (auto-extract ID) or paste the ID directly.</li>`,
+      sec_warn:"Security note: this is static (no server). Password check runs in the browser.",
+      pw_label:"Password", enter_pw:"Enter the password to open the album.", may_expire:"Link may expire after",
+      ask_pw:"Please enter the password", wrong_pw:"Wrong password", selected:"Selected:",
+      note_ph:"Notes… (e.g., brighten, crop 4x5, remove object…)", pick_photo:"Pick photo",
+      folder:"Folder", need_api:"Please fill API Key, Folder ID and password", made_and_copied:"Link created & copied",
+      made:"Link created", no_link:"No link yet. Click “Create link” first.", copied_link:"Link copied", copy_fail:"Copy failed",
+      bad_token:"Invalid token.", cant_list:"Cannot list images. Check API key/folder sharing.",
+      max_picks: ({n})=>`Max ${n} photos`, none_selected:"No photo selected", downloaded_txt:"Downloaded favorites.txt",
+      copied_list:"List copied", download:"Download",
+    },
+    kh:{ home_title:"ចែករំលែក Album អតិថិជន", home_hint:"ឯកសារ​តែមួយ · រក្សាទុករូបនៅ Google Drive · អតិថិជនអាច​មើល/ទាញយក/ជ្រើស។",
+      make_title:"បង្កើត link អតិថិជន", make_desc:'បញ្ចូល <strong>API Key</strong>, <strong>Folder ID</strong>, កំណត់ <strong>ពាក្យសម្ងាត់</strong> និង <strong>ចំនួនរូបអាចជ្រើស</strong>។ ប្រព័ន្ធនឹងបង្កើត link ឲ្យអតិថិជន។',
+      make_note:"ចំណាំ: គេបណ្ដាញ static, ពាក្យសម្ងាត់ត្រូវបានពិនិត្យនៅខាងម៉ាសុីនភ្ញៀវ។ ត្រូវការ​សុវត្ថិភាពខ្ពស់ សូមប្រើ server/serverless។",
+      client_title:"អតិថិជនចូលមើល", client_desc:"អតិថិជននឹងទទួលបាន link។ បើក និងបញ្ចូលពាក្យសម្ងាត់ ដើម្បីមើលរូប។",
+      admin_title:"គ្រប់គ្រងបង្កើតតំណ", label_album:"ឈ្មោះអាល់ប៊ុំ", label_limit:"កំណត់ចំនួនជ្រើស", label_apikey:"Google Drive API Key",
+      label_apikey_hint:"(បើក Drive API និងកំណត់ថត Anyone with link)", label_folder:"Google Drive Folder ID",
+      label_pw:"ពាក្យសម្ងាត់", label_exp:"កាលបរិច្ឆេទផុតកំណត់ (មិនបង្ខំ)", guide_title:"របៀបយក API Key & Folder ID",
+      guide_list:`<li>បើក <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → បង្កើត Project → បើក <em>Google Drive API</em> → បង្កើត <em>API Key</em>.</li>
+                  <li>កំណត់ថត Drive ជា <em>Anyone with the link – Viewer</em>.</li>
+                  <li>បិទភ្ជាប់ URL ថត ឬ ID ដោយផ្ទាល់។</li>`,
+      sec_warn:"ការព្រមានសុវត្ថិភាព: គេបណ្ដាញ static (គ្មាន server)។",
+      pw_label:"ពាក្យសម្ងាត់", enter_pw:"បញ្ចូលពាក្យសម្ងាត់ដើម្បីបើកអាល់ប៊ុំ។", may_expire:"តំណអាចផុតកំណត់ក្រោយថ្ងៃ",
+      ask_pw:"សូមបញ្ចូលពាក្យសម្ងាត់", wrong_pw:"ពាក្យសម្ងាត់មិនត្រឹមត្រូវ",
+      selected:"បានជ្រើស:", note_ph:"កំណត់ចំណាំ…", pick_photo:"ជ្រើសរើសរូប",
+      folder:"ថត", need_api:"សូមបំពេញ API Key, Folder ID និង ពាក្យសម្ងាត់",
+      made_and_copied:"បានបង្កើតតំណ និងចម្លង", made:"បានបង្កើតតំណ", no_link:"មិនទាន់មានតំណទេ។ សូមចុច “បង្កើតតំណ” មុន។",
+      copied_link:"បានចម្លងតំណ", copy_fail:"ចម្លងបរាជ័យ", bad_token:"Token មិនត្រឹមត្រូវ",
+      cant_list:"មិនអាចបង្ហាញបញ្ជីរូបភាពបានទេ។",
+      max_picks: ({n})=>`អតិបរមា ${n} រូប`, none_selected:"មិនមានរូបដែលបានជ្រើស",
+      downloaded_txt:"បានទាញយក favorites.txt", copied_list:"បានចម្លងបញ្ជី", download:"ទាញយក",
+    }
+  };
+
+  function t(key, params){
+    const lang = document.documentElement.getAttribute('data-lang') || 'vi';
+    const value = I18N[lang][key];
+    return typeof value === 'function' ? value(params||{}) : value;
+  }
+
+  function applyLang(lang){
+    document.documentElement.setAttribute('data-lang', lang);
+    localStorage.setItem('cg_lang', lang);
+    // Home
+    $('#t_home_title').textContent = t('home_title');
+    $('#t_home_hint').textContent = t('home_hint');
+    $('#t_card_make_title').textContent = t('make_title');
+    $('#t_card_make_desc').innerHTML = t('make_desc');
+    $('#t_card_make_note').textContent = t('make_note');
+    $('#t_card_client_title').textContent = t('client_title');
+    $('#t_card_client_desc').textContent = t('client_desc');
+    // Admin labels
+    $('#t_admin_title').textContent = t('admin_title');
+    $('#t_label_album').textContent = t('label_album');
+    $('#t_label_limit').textContent = t('label_limit');
+    $('#t_label_apikey').childNodes[0].nodeValue = t('label_apikey')+' ';
+    $('#t_label_apikey_hint').textContent = t('label_apikey_hint');
+    $('#t_label_folder').textContent = t('label_folder');
+    $('#t_label_pw').textContent = t('label_pw');
+    $('#t_label_exp').textContent = t('label_exp');
+    $('#t_guide_title').innerHTML = `<strong>${t('guide_title')}</strong>`;
+    $('#t_guide_list').innerHTML = t('guide_list');
+    $('#t_sec_warn').textContent = t('sec_warn');
+    // Client gate
+    $('#albumMeta').textContent = t('enter_pw');
+    $('#t_pw_label').textContent = t('pw_label');
+    $('#t_selected').textContent = t('selected');
+
+    // Cập nhật tooltip/aria cho nút ngôn ngữ
+    const langNames = {vi:'Tiếng Việt', en:'English', kh:'ភាសាខ្មែរ'};
+    const btn = $('#toggleLang');
+    if(btn){ btn.title = langNames[lang]; btn.setAttribute('aria-label', langNames[lang]); }
+  }
+
+  // Lang menu toggle + chọn ngôn ngữ
+  const langBtn = $('#toggleLang');
+  const langMenu = $('#langMenu');
+  on(langBtn,'click', (e)=>{ e.stopPropagation(); langMenu.classList.toggle('hidden'); });
+  document.addEventListener('click', (e)=>{
+    if(!langMenu.contains(e.target) && e.target!==langBtn){ langMenu.classList.add('hidden'); }
+  });
+  document.querySelectorAll('.langItem').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      applyLang(b.getAttribute('data-lang'));
+      langMenu.classList.add('hidden');
+    }, {passive:true});
+  });
+
+  // Khởi tạo ngôn ngữ (ưu tiên lưu, rồi theo navigator)
+  (function initLang(){
+    let init = localStorage.getItem('cg_lang');
+    if(!init){
+      const nav = (navigator.language || 'vi').toLowerCase();
+      if(nav.startsWith('en')) init='en';
+      else if(nav.startsWith('km') || nav.startsWith('kh')) init='kh';
+      else init='vi';
+    }
+    applyLang(init);
+  })();
+
+  // ---------- Nav ----------
   function bindNav(){
     on('#goHome','click', ()=>{ location.hash=''; renderByHash(); });
     on('#goAdmin','click', ()=>{ location.hash='#admin'; renderByHash(); });
     on('#ctaAdmin','click', ()=>{ location.hash='#admin'; renderByHash(); });
   }
 
-  document.addEventListener('DOMContentLoaded', ()=>{
-    cacheViews();
-    bindNav();
-    bindAdmin();
+  // ---------- Boot ----------
+  function bindAll(){
+    cacheViews(); bindNav(); bindAdmin();
     window.addEventListener('hashchange', renderByHash, {passive:true});
     renderByHash();
-  });
+  }
+  document.addEventListener('DOMContentLoaded', bindAll);
   </script>
 </body>
 </html>
